@@ -2,6 +2,8 @@
 
 namespace SiteParser\Network;
 
+use Exception;
+
 class HttpRequest implements HttpRequestInterface
 {
     const PORT = '80';
@@ -25,7 +27,7 @@ class HttpRequest implements HttpRequestInterface
     /**
      * Открывает соединение с сокетом
      */
-    protected function openConnection()
+    public function createConnection()
     {
         $this->socket = stream_socket_client($this->url->getHost() . ':' . ($this->url->getPort() ? $this->url->getPort() : static::PORT), $errno,
             $errstr, 10,
@@ -37,6 +39,8 @@ class HttpRequest implements HttpRequestInterface
         } else {
             throw new Exception('Stream failed to open correctly.', 1);
         }
+
+        return $this->socket;
     }
 
     /**
@@ -55,7 +59,7 @@ class HttpRequest implements HttpRequestInterface
     {
         $result = '';
 
-        $this->openConnection();
+        $this->createConnection();
 
         while ($data = fread($this->socket, 1024)) {
             $result .= $data;

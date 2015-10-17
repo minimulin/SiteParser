@@ -1,10 +1,10 @@
 <?php
 
-namespace SiteParser;
+namespace SiteParser\Utils;
 
 use SiteParser\Exceptions\ParseException;
 
-class HtmlParserUtils
+class HtmlParser
 {
     /**
      * Возвращает массив всех найденных в документе тегов
@@ -94,6 +94,18 @@ class HtmlParserUtils
         }
 
         return $matches[1];
+    }
+
+    /**
+     * Возвращает значение атрибута по его имени
+     * @param  string $string        Строка с элементом
+     * @param  string $attributeName Ключ атрибута
+     * @return string                Значение атрибута
+     */
+    public function getTagAttribute($string, $attributeName)
+    {
+    	$attributes = static::getTagAttributes($string);
+    	return preg_replace("/['\"]+/", "", $attributes[2][array_search($attributeName, $attributes[1])]);
     }
 
 }

@@ -44,6 +44,11 @@ class Echoer
         static::echoColoredMessage($message, '[43m');
     }
 
+    public function line()
+    {
+        echo "\n";
+    }
+
     /**
      * Осуществляет форматирование сообщения и последующий его вывод
      * @param  string $message Текст сообщения
