@@ -26,6 +26,7 @@ class HttpRequest implements HttpRequestInterface
 
     /**
      * Открывает соединение с сокетом
+     * @return resource Сокет
      */
     public function createConnection()
     {
@@ -37,7 +38,7 @@ class HttpRequest implements HttpRequestInterface
             $headers = $this->buildHeaders();
             fwrite($this->socket, $headers);
         } else {
-            throw new Exception('Stream failed to open correctly.', 1);
+            throw new Exception('Не удалось открыть поток', 1);
         }
 
         return $this->socket;

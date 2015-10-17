@@ -65,14 +65,11 @@ class RuanRuBoardsParser
                 //Адрес
                 $address = HtmlParser::getTagContent($tds[2][3], 'a');
 
-                //Для лучшей читаемости кода выделим все мелочи в отдельные переменные
                 //Получаем содержимое первого столбца для каждой строчки таблицы
-                $firstTdContent = $tds[0][3];
-                $value = HtmlParser::getTagAttribute($firstTdContent, 'value');
+                $value = HtmlParser::getTagAttribute($tds[0][3], 'value');
 
                 //Получаем содержимое третьего столбца для каждой строчки таблицы
-                $thirdTdContent = $tds[2][0];
-                $id = HtmlParser::getTagAttribute($thirdTdContent, 'id');
+                $id = HtmlParser::getTagAttribute($tds[2][0], 'id');
 
                 $link = "$root/address/html/6x3/$id/$value/";
 
@@ -94,42 +91,47 @@ class RuanRuBoardsParser
         Echoer::info('Извлечено ' . count($boards) . ' записей');
 
         Echoer::info('Идёт получение и парсинг изображений и схем (1* = 10 записей)');
-//Класс для распараллеливания запросов
+        //Класс для распараллеливания запросов
         $pool = new HttpRequestPool($links, 4);
 
-//Для экономии времени сразу по получении ответа парсим его. Реализовано через анонимную функцию
-        $detailedPagesContent = $pool->start(function ($id, $content) use ($boards, $root) {
-            //Каждые 10 полученных ответов выводим звёздочку
-            if ($id > 0 && $id % 10 == 0) {
-                echo '*';
-            }
+        try {
+            //Для экономии времени сразу по получении ответа парсим его. Реализовано через анонимную функцию
+            $detailedPagesContent = $pool->start(function ($id, $content) use ($boards, $root) {
+                //Каждые 10 полученных ответов выводим звёздочку
+                if ($id > 0 && $id % 10 == 0) {
+                    echo '*';
+                }
 
-            $tds = HtmlParser::getTagsArray($content, 'td');
-            //Извлекаем фотографию поверхности
-            if (isset($tds[0])) {
-                $image = HtmlParser::getTagAttribute($tds[0], 'src');
-                //Местами можно встретить подобный URL вместо отсутствующего изображения
-                if ($image == '/img/timed/photo/no.gif') {
+                $tds = HtmlParser::getTagsArray($content, 'td');
+                //Извлекаем фотографию поверхности
+                if (isset($tds[0])) {
+                    $image = HtmlParser::getTagAttribute($tds[0], 'src');
+                    //Местами можно встретить подобный URL вместо отсутствующего изображения
+                    if ($image == '/img/timed/photo/no.gif') {
+                        $image = null;
+                    }
+                } else {
                     $image = null;
                 }
-            } else {
-                $image = null;
-            }
 
-            //Извлекаем схему
-            if (isset($tds[1])) {
-                $scheme = HtmlParser::getTagAttribute($tds[1], 'src');
-                if ($scheme == '/img/timed/photo/no.gif') {
+                //Извлекаем схему
+                if (isset($tds[1])) {
+                    $scheme = HtmlParser::getTagAttribute($tds[1], 'src');
+                    if ($scheme == '/img/timed/photo/no.gif') {
+                        $scheme = null;
+                    }
+                } else {
                     $scheme = null;
                 }
-            } else {
-                $scheme = null;
-            }
 
-            //Хочу заметить, что проверка на существование изображений не осуществляется.
-            $boards[$id]['bb_image'] = $image ? ($root . $image) : null;
-            $boards[$id]['bb_shema'] = $scheme ? ($root . $scheme) : null;
-        });
+                //Хочу заметить, что проверка на существование изображений не осуществляется.
+                $boards[$id]['bb_image'] = $image ? ($root . $image) : null;
+                $boards[$id]['bb_shema'] = $scheme ? ($root . $scheme) : null;
+            });
+        } catch (Exception $e) {
+            Echoer::error('Возникла ошибка в процессе получения изображений и схем. Аварийное завершение скрипта');
+            die(1);
+        }
 
         Echoer::line();
         Echoer::info('Получено и обработано ' . count($detailedPagesContent) . ' пар изображений и схем');

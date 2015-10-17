@@ -44,6 +44,10 @@ class Echoer
         static::echoColoredMessage($message, '[43m');
     }
 
+    /**
+     * Осуществляет перевод каретки на новую строку
+     * @return string Символ переноса строки
+     */
     public function line()
     {
         echo "\n";
